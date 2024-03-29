@@ -1,9 +1,9 @@
+import { TResponseData } from '@/types/api'
 
-
-export default async function useResponse({  method, path , exec }: any):
+export default async function useResponse({  method, path , exec }: { method: string; path: string; exec: any }):
     Promise<() => Promise<{ status: string; isSuccess: boolean }>> {
 
-    let response: any = {};
+    let response: TResponseData = {};
 
     if (typeof exec === 'function') {
         return exec()

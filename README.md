@@ -14,3 +14,8 @@ Since TypeScript cannot handle type information for `.vue` imports, they are shi
 2. Reload the VS Code window by running `Developer: Reload Window` from the command palette.
 
 You can learn more about Take Over mode [here](https://github.com/johnsoncodehk/volar/discussions/471).
+
+
+## Apply more TypeScript
+
+There is plenty of places where more TS could be added. Especially in file types/api.ts. We should replace all any types as any simple remove type checking for this places.

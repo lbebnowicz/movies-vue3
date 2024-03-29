@@ -1,11 +1,11 @@
 import useRequest from './helpers/useRequest';
 import useResponse from './helpers/useResponse';
+import { TRequestValues, TRequestConstructor } from "@/types/api";
 
-export default (requestConstructor: any, requestValues: any = {}):
+export default (requestConstructor: TRequestConstructor, requestValues: TRequestValues = {}):
     Promise<{ status: string; isSuccess: boolean; data: any; errors: object; } | any> | any => {
-
-    let response;
-    let valuesKeys:any = requestValues ? Object.keys(requestValues) : {};
+    let response: any;
+    let valuesKeys:string[] = requestValues ? Object.keys(requestValues) : [];
 
     // Shortcut for POST : If no 'params','query','body' keys in requestValues object, so it is 'body' object itself.
     if (valuesKeys.length && !valuesKeys.some((key: any) => ['path', 'params', 'query', 'body'].includes(key))) {

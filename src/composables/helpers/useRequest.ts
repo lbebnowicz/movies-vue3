@@ -1,3 +1,5 @@
+import { TRequestConstructor, TRequestValues } from '@/types/api'
+
 const METHOD = {
     GET: 'GET',
     POST: 'POST',
@@ -10,19 +12,19 @@ export default (
     {
         api,
         method,
-        path = null,
+        path,
         params: paramsBuilder = {},
         query: queryBuilder = {},
         body: bodyBuilder = {},
         config: configBuilder = {},
-    }: any,
+    }: TRequestConstructor,
     {
-        path: forcedPath = null,
+        path: forcedPath,
         params: paramsValue = {},
         query: queryValue = {},
         body: bodyValue = {},
         config: configRequest = {}
-    }: any = {},
+    }: TRequestValues = {},
 ): any => {
     try {
         return buildRequest(
@@ -36,7 +38,6 @@ export default (
                 config: configBuilder,
             },
             {
-                api,
                 path: forcedPath,
                 params: paramsValue,
                 query: queryValue,
@@ -51,8 +52,8 @@ export default (
 }
 
 function buildRequest(
-    { api, method, path: path, params: paramsBuilder, query: queryBuilder, body: bodyBuilder, config: configBuilder }: any,
-    { path: forcedPath, params: paramsValue, query: queryValue, body: bodyValue, config: configRequest }: any,
+    { api, method, path: path, params: paramsBuilder, query: queryBuilder, body: bodyBuilder, config: configBuilder }: TRequestConstructor,
+    { path: forcedPath, params: paramsValue, query: queryValue, body: bodyValue, config: configRequest }: TRequestValues,
 ) {
     let finalPath = forcedPath || path;
     method = method.toLowerCase()
@@ -110,10 +111,10 @@ function buildRequest(
                         queryValue[key] = queryBuilder[key].format(queryValue[key])
                     }
                     const validated = queryBuilder[key].validators
-                        ? queryBuilder[key].validators.some((func: any) => func(queryValue[key]) === true)
+                        ? queryBuilder[key].validators?.some((func: any) => func(queryValue[key]) === true)
                         : true
                     if (!validated) {
-                        throw Error(` query '${ key }' is not valid. Required: ${ queryBuilder[key].validators.join(', ') }`)
+                        throw Error(` query '${ key }' is not valid. Required: ${ queryBuilder[key].validators?.join(', ') }`)
                     }
                 }
             }
