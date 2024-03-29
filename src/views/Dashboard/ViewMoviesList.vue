@@ -1,10 +1,9 @@
 <script lang="ts">
-import { defineComponent, Ref } from 'vue'
-// import { useInfiniteScroll } from "@vueuse/core";
+import { defineComponent } from 'vue'
 import { CategoriesTabs, MovieCard } from "@/app.organizer";
 import { TCategoryItem } from "@/types/movies";
 import { ROUTE_DASHBOARD_MOVIES_LIST } from "@/app.routes";
-import { useMoviesStore } from "@/stores/movies";
+import useMovies from "@/composables/useMovies";
 
 export default  defineComponent({
     components: {
@@ -46,20 +45,20 @@ export default  defineComponent({
     },
     computed: {
         storeMovies() {
-            return useMoviesStore();
+            return useMovies;
         },
         currentPage() {
-            return this.storeMovies.currentPage;
+            return this.storeMovies.currentPage.value;
         },
          moviesGenres() {
-            return this.storeMovies.moviesGenres;
+            return this.storeMovies.moviesGenres.value;
         },
          end() {
-            return this.storeMovies.end;
+            return this.storeMovies.end.value;
         }
     },
     methods: {
-        getGenres (genre: number[], page: number = 1) { return this.storeMovies.getGenres(genre, page) },
+        getGenres (genre: number[], page: number = 1) { return this.storeMovies.loadGenres(genre, page) },
         getCategory(name: string): TCategoryItem | undefined {
             return this.categories.find((e: any) => e.name === name);
         },
