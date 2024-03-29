@@ -1,112 +1,92 @@
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue';
 import { CategoriesTabs, MovieCard } from "@/app.organizer";
 import { TCategoryItem } from "@/types/movies";
 import { ROUTE_DASHBOARD_MOVIES_LIST } from "@/app.routes";
 import useMovies from "@/composables/useMovies";
+import { useRoute, useRouter } from 'vue-router'
 
-export default  defineComponent({
-    components: {
-        CategoriesTabs,
-        MovieCard,
+const router = useRouter();
+const route = useRoute();
+const storeMovies = useMovies;
+
+const refInfiniteList = ref<HTMLElement | null>(null);
+const currentTab = ref<TCategoryItem | null>(null);
+const isLoadingNextPage = ref(false);
+const categories = ref([ //todo move it to separate file
+    {
+        name: "All",
+        value: [28, 16, 12, 35, 99],
     },
-    data() {
-        return {
-            refInfiniteList: null,
-            currentTab: null as TCategoryItem | null,
-            isLoadingNextPage: false,
-            categories: [
-                {
-                    name: "All",
-                    value: [28, 16, 12, 35, 99],
-                },
-                {
-                    name: "Action",
-                    value: [28],
-                },
-                {
-                    name: "Animation",
-                    value: [16],
-                },
-                {
-                    name: "Adventure",
-                    value: [12],
-                },
-                {
-                    name: "Comedy",
-                    value: [35],
-                },
-                {
-                    name: "Documentary",
-                    value: [99],
-                },
-            ]
+    {
+        name: "Action",
+        value: [28],
+    },
+    {
+        name: "Animation",
+        value: [16],
+    },
+    {
+        name: "Adventure",
+        value: [12],
+    },
+    {
+        name: "Comedy",
+        value: [35],
+    },
+    {
+        name: "Documentary",
+        value: [99],
+    },
+]);
+
+const currentPage = computed(() => storeMovies.currentPage.value);
+const moviesGenres = computed(() => storeMovies.moviesGenres.value);
+const end = computed(() => storeMovies.end.value);
+
+const getCategory = (name: string): TCategoryItem | undefined => {
+    return categories.value.find((e: any) => e.name === name);
+};
+
+const getGenres = async (genre: number[], page: number = 1) => {
+    await storeMovies.loadGenres(genre, page);
+};
+
+const onChangeTab = (tab: TCategoryItem): void => {
+    const route = {
+        name: ROUTE_DASHBOARD_MOVIES_LIST.name,
+        query: { genre: tab.name },
+    };
+    currentTab.value = tab;
+    storeMovies.loadGenres(tab.value, 1);
+    router.push(route);
+};
+
+const handleScroll = async (event: any) => {
+    const { target } = event;
+    if (target.scrollTop + target.clientHeight >= target.scrollHeight - (400 * currentPage.value)) {
+        if (!end.value && !isLoadingNextPage.value) {
+            isLoadingNextPage.value = true;
+            const category = currentTab.value || null;
+            if (category) await storeMovies.loadGenres(category.value, currentPage.value + 1);
+            isLoadingNextPage.value = false;
         }
-    },
-    computed: {
-        storeMovies() {
-            return useMovies;
-        },
-        currentPage() {
-            return this.storeMovies.currentPage.value;
-        },
-         moviesGenres() {
-            return this.storeMovies.moviesGenres.value;
-        },
-         end() {
-            return this.storeMovies.end.value;
-        }
-    },
-    methods: {
-        getGenres (genre: number[], page: number = 1) { return this.storeMovies.loadGenres(genre, page) },
-        getCategory(name: string): TCategoryItem | undefined {
-            return this.categories.find((e: any) => e.name === name);
-        },
-
-        onChangeTab(tab: TCategoryItem): void {
-            this.$router.push({
-                name: ROUTE_DASHBOARD_MOVIES_LIST.name,
-                query: { genre: tab.name },
-            });
-            this.currentTab = tab;
-            this.getGenres(tab.value, 1);
-        },
-
-        async handleScroll(event: any) {
-            const { target } = event;
-            if (target.scrollTop + target.clientHeight >= target.scrollHeight - (400 * this.currentPage)) {
-                if (!this.end && !this.isLoadingNextPage) {
-                    this.isLoadingNextPage = true;
-                    const category = this.currentTab || null;
-                    if (category) await this.getGenres(category.value, this.currentPage + 1);
-                    this.isLoadingNextPage = false;
-                }
-            }
-        }
-    },
-
-
-
-    created() {
-        const queryGenre = this.$route.query.genre || null;
-        if (queryGenre) {
-            let categoryQuery = this.getCategory(queryGenre as string);
-            if (categoryQuery) this.currentTab = categoryQuery;
-        } else {
-            this.currentTab = this.categories[0];
-        }
-
-
-    },
-
-    mounted() {
-        this.refInfiniteList = this.$refs.refInfiniteList as any;
-        const category = this.currentTab;
-        if (category)
-        this.getGenres(category.value, this.currentPage);
-
     }
-})
+};
+
+onMounted(() => {
+    const queryGenre = route.query.genre || null;
+    if (queryGenre) {
+        let categoryQuery = getCategory(queryGenre as string);
+        if (categoryQuery) currentTab.value = categoryQuery;
+    } else {
+        currentTab.value = categories.value[0];
+    }
+
+    refInfiniteList.value = refInfiniteList.value as HTMLElement;
+    const category = currentTab.value;
+    if (category) getGenres(category.value, currentPage.value);
+});
 </script>
 
 <template>
@@ -132,5 +112,3 @@ export default  defineComponent({
     </div>
   </div>
 </template>
-
-<style lang="scss"></style>
